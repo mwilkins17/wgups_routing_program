@@ -31,6 +31,27 @@ class HashTable:
             index = (index + 1) % self.size
         self.table[index] = package
 
+    def lookup(self, package_id):
+        """
+        Finds a package by package_id and returns its details if found.
+        """
+        index = self.hash_function(package_id)
+        while self.table[index] is not None:
+            if self.table[index].package_id == package_id:
+                # Package found, return its details as a dictionary
+                package = self.table[index]
+                return {
+                    'delivery address': package.address,
+                    'delivery deadline': package.deadline,
+                    'delivery city': package.city,
+                    'delivery zip code': package.zip_code,
+                    'package weight': package.weight,
+                    'delivery status': package.status,
+                    'delivery time': package.delivery_time
+                }
+            index = (index + 1) % self.size
+        return None  # Return None if the package is not found
+
     def remove(self, package_id):
         """
         Removes a package from the hash table by package_id and rehashes if necessary.
