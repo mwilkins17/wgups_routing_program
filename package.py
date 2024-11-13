@@ -58,7 +58,7 @@ class Package:
             self.status = "delivered"
         elif self.depart_time <= time <= self.delivery_time:
             self.status = "en route"
-            self.delivery_time = timedelta(0)
+            # self.delivery_time = timedelta(0)
         else:
             self.status = "at hub"
-            self.delivery_time = timedelta(0)
+            # self.delivery_time = timedelta(0)

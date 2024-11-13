@@ -46,16 +46,17 @@ def main():
             Welcome to WGUPS!\n
             \nPlease type one of the following numbers:
                 1. Print All Package Final Delivery Status and Total Mileage
-                2. Lookup a Single Package Status by a Specific Time
-                3. Lookup All Package Delivery Status by a Specific Time 
-                4. Exit the Program
+                2. Print All Packages on a truck between a start and end time
+                3. Lookup a Single Package Status by a Specific Time
+                4. Lookup All Package Delivery Status by a Specific Time 
+                5. Exit the Program
             """
             )
         # Handle user input for menu selection
         ans = input("Which option would you like to select?:  ")
         if ans == '1':
             # Print final delivery status for all packages and total mileage for trucks
-            for i in range(1, 41):
+            for i in range(1, 40):
                 package = hash_table.lookup(i)
                 package.status = 'delivered'
                 update_package_9(package, timedelta(hours=17))
@@ -64,26 +65,101 @@ def main():
             print(f"The total mileage is {mileage}")
 
         elif ans == '2':
+            while True:
+                total_packages_loaded = 0
+                truck1_packages = {}
+                truck2_packages = {}
+                truck3_packages = {}
+                # Print final delivery status for all packages and total mileage for trucks
+                print("\nIf you want to go back to the main menu at any time, enter 'q'")
+                start_time = input("Please enter a valid start time in the form (HH:MM:SS): ")
+                if re.match(time_pattern, start_time):
+                    print("\nIf you want to go back to the main menu at any time, enter 'q'")
+                    end_time = input("Please enter a valid end time in the form (HH:MM:SS): ")
+                    if re.match(time_pattern, end_time):
+
+                        h, m, s = start_time.split(":")
+                        start_time = timedelta(hours=int(h), minutes=int(m), seconds=int(s))
+                        h, m, s = end_time.split(":")
+                        end_time = timedelta(hours=int(h), minutes=int(m), seconds=int(s))
+
+                        for i in range(1, 41):
+                            package = hash_table.lookup(i)
+                            package.update_status(end_time)
+                            update_package_9(package, timedelta(hours=17))
+                            if package.depart_time <= start_time:
+                                if package.delivery_time < start_time:
+                                    continue
+                                total_packages_loaded += 1
+                                if package.truck == 1:
+                                    truck1_packages[str(package.package_id)] = truck1_packages.get(
+                                        str(package.package_id), 
+                                        "Departed @ " + str(package.depart_time) + ", " +
+                                        package.status + f", delivery @ {package.delivery_time}")
+                                if package.truck == 2:
+                                    truck2_packages[str(package.package_id)] = truck2_packages.get(
+                                        str(package.package_id), 
+                                        "Departed @ " + str(package.depart_time) + ", " +
+                                        package.status + f", delivery @ {package.delivery_time}")
+                                if package.truck == 3:
+                                    truck3_packages[str(package.package_id)] = truck3_packages.get(
+                                        str(package.package_id), 
+                                        "Departed @ " + str(package.depart_time) + ", " +
+                                        package.status + f", delivery @ {package.delivery_time}")
+                        print(f"\n\nTotal Packages Loaded on trucks between {start_time} and {end_time}: {total_packages_loaded}")
+                        for key, value in truck1_packages.items():
+                            print(f"Truck 1, Package_number: {key}, Package Status: {value}")
+                        for key, value in truck2_packages.items():
+                            print(f"Truck 2, Package_number: {key}, Package Status: {value}")
+                        for key, value in truck3_packages.items():
+                            print(f"Truck 3, Package_number: {key}, Package Status: {value}")
+
+                    elif end_time == 'q':
+                        print("\nRedirecting back to main menu...")
+                        break
+                    else:
+                        print("\n##############################")
+                        print("That was an invalid end date format.")
+                        print("##############################\n")
+
+                elif start_time == 'q':
+                    print("\nRedirecting back to main menu...")
+                    break
+                else:
+                    print("\n##############################")
+                    print("That was an invalid start date format.")
+                    print("##############################\n")
+
+
+        elif ans == '3':
             # Allow user to lookup a single package by ID and time
             while True:
                 print("If you want to go back to the main menu at any time, enter 'q'")
-                user_package_id = input("Please enter a valid package ID (1-41): ")
+                user_package_id = input("Please enter a valid package ID (1-40): ")
                 # Validate package ID
                 if user_package_id.isnumeric():
-                    if int(user_package_id) < 1 or int(user_package_id) > 41:
+                    if int(user_package_id) < 1 or int(user_package_id) > 40:
                         print("\n##############################")
                         print("That was not a valid number.")
                         print("##############################\n")
                     else:
                         # Get time input from user and update package status accordingly
                         user_time = input("Please enter a valid time in the form (HH:MM:SS): ")
-                        h, m, s = user_time.split(":")
-                        time = timedelta(hours=int(h), minutes=int(m), seconds=int(s))
-                        package = hash_table.lookup(int(user_package_id))
-                        package.update_status(time)
-                        update_package_9(package, time)
-                        print(package)
-                        break
+                        if re.match(time_pattern, user_time):
+                            h, m, s = user_time.split(":")
+                            time = timedelta(hours=int(h), minutes=int(m), seconds=int(s))
+                            package = hash_table.lookup(int(user_package_id))
+                            package.update_status(time)
+                            update_package_9(package, time)
+                            print(package)
+                        elif user_time == 'q':
+                            print("\nRedirecting back to main menu...")
+                            break
+                        else:
+                            print("\n##############################")
+                            print("That was an invalid input format.")
+                            print("##############################\n")
+                            
                 elif user_package_id == 'q':
                     print("\nRedirecting back to main menu...")
                     break
@@ -92,7 +168,7 @@ def main():
                     print("That was not a valid number. Please try again.")
                     print("##############################\n")
 
-        elif ans == '3':
+        elif ans == '4':
             # Lookup and display status for all packages at a specific time
             while True:
                 print("If you want to go back to the main menu at any time, enter 'q'")
@@ -115,7 +191,7 @@ def main():
                     print("That was an invalid input format.")
                     print("##############################\n")
 
-        elif ans == '4':
+        elif ans == '5':
             # Exit the program
             print("\nThank you for using WGUPS. Goodbye!\n")
             exit()
