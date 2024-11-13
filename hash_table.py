@@ -1,5 +1,3 @@
-# hash_table.py
-
 from package import Package
 
 class HashTable:
@@ -8,74 +6,73 @@ class HashTable:
     """
 
     def __init__(self, size=40):
-        # Initializes the hash table with a set size
+        """
+        Initializes the hash table with a specified size.
+        
+        Parameters:
+        - size: The number of slots in the hash table, default is 40.
+        
+        Attributes:
+        - table: A list of fixed size initialized with `None`, representing the hash table.
+        """
         self.size = size
-        self.table = [None] * size
+        self.table = [None] * size  # Initialize the hash table with empty slots
 
-    def _hash_key(self, key:int) -> int:
-        """private method that generates a index (bucket) by
-        taking the key mod size of the list and returning that
-        value"""
+    def __str__(self):
+        """
+        Provides a string representation of all packages in the hash table.
+        
+        Returns:
+        - A string containing all packages, each on a new line.
+        """
+        package_list = str()
+        for package in self.table:
+            package_list += f"{package}\n"
+        return package_list
+
+    def _hash(self, key: int) -> int:
+        """
+        Private method to calculate the hash index for a given key.
+        
+        Parameters:
+        - key: The package ID for which the hash index is generated.
+        
+        Returns:
+        - An integer representing the index in the hash table where the key should be stored.
+        """
         return key % self.size
 
-    def insert(self, package_id, address, deadline, city, zip_code, weight, status="at hub", delivery_time=None):
+    def insert(self, package_id, package):
         """
-        Inserts a package with all relevant details into the hash table.
+        Inserts a package into the hash table using open addressing to handle collisions.
+        
+        Parameters:
+        - package_id: Unique identifier of the package.
+        - package: Package object containing all relevant package details.
         """
-        package = Package(package_id, address, deadline, city, zip_code, weight, status, delivery_time)
-        index = self.hash_function(package_id)
+        index = self._hash(package_id)  # Compute the hash index
+        # Resolve collisions using linear probing
         while self.table[index] is not None:
             if self.table[index].package_id == package_id:
-                self.table[index] = package
+                self.table[index] = package  # Update existing package
                 return
-            index = (index + 1) % self.size
-        self.table[index] = package
+            index = (index + 1) % self.size  # Move to the next slot if occupied
+        self.table[index] = package  # Insert the package when an empty slot is found
 
     def lookup(self, package_id):
         """
-        Finds a package by package_id and returns its details if found.
+        Finds and returns a package from the hash table by its package_id.
+        
+        Parameters:
+        - package_id: The unique identifier for the package to locate.
+        
+        Returns:
+        - The Package object if found, otherwise None.
         """
-        index = self.hash_function(package_id)
+        index = self._hash(package_id)  # Get the index for the package_id
+        # Linear probing to find the package if collisions occurred
         while self.table[index] is not None:
             if self.table[index].package_id == package_id:
-                # Package found, return its details as a dictionary
-                package = self.table[index]
-                return {
-                    'delivery address': package.address,
-                    'delivery deadline': package.deadline,
-                    'delivery city': package.city,
-                    'delivery zip code': package.zip_code,
-                    'package weight': package.weight,
-                    'delivery status': package.status,
-                    'delivery time': package.delivery_time
-                }
-            index = (index + 1) % self.size
-        return None  # Return None if the package is not found
-
-    def remove(self, package_id):
-        """
-        Removes a package from the hash table by package_id and rehashes if necessary.
-        """
-        index = self.hash_function(package_id)
-        while self.table[index] is not None:
-            if self.table[index].package_id == package_id:
-                removed_package = self.table[index]
-                self.table[index] = None
-                next_index = (index + 1) % self.size
-                while self.table[next_index] is not None:
-                    rehashed_package = self.table[next_index]
-                    self.table[next_index] = None
-                    self.insert(
-                        rehashed_package.package_id,
-                        rehashed_package.address,
-                        rehashed_package.deadline,
-                        rehashed_package.city,
-                        rehashed_package.zip_code,
-                        rehashed_package.weight,
-                        rehashed_package.status,
-                        rehashed_package.delivery_time
-                    )
-                    next_index = (next_index + 1) % self.size
-                return removed_package
-            index = (index + 1) % self.size
-        return None
+                return self.table[index]  # Return the package if found
+            index = (index + 1) % self.size  # Move to the next slot if not found
+        return None  # Return None if the package was not found in the table
