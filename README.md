@@ -97,9 +97,3 @@ If revisiting this project, the following enhancements are recommended:
 - **Hybrid Routing Approach**: Integrate a 2-opt optimization step to refine the nearest neighbor route, reducing overall mileage.
 - **Dynamic Routing Adjustments**: Incorporate real-time data (e.g., traffic updates or priority changes) for adaptive route reoptimization.
 - **Multi-Threading for Parallel Delivery Simulation**: Optimize by routing multiple trucks simultaneously, improving performance for larger datasets.
-
-## References
-
-- Zybooks Section 5.9: "Dijkstra's Shortest Path Algorithm." *Data Structures and Algorithms II*. Retrieved from [https://learn.zybooks.com/zybook/WGUC950Template2023/chapter/5/section/9](https://learn.zybooks.com/zybook/WGUC950Template2023/chapter/5/section/9)
-
-- Zybooks Section 5.10: "Bellman-Ford Shortest Path Algorithm." *Data Structures and Algorithms II*. Retrieved from [https://learn.zybooks.com/zybook/WGUC950Template2023/chapter/5/section/10](https://learn.zybooks.com/zybook/WGUC950Template2023/chapter/5/section/10)
