@@ -20,7 +20,10 @@ class Package:
         - notes: Any special instructions or notes about the package.
         - status: Current status of the package (default is 'at hub').
         - delivery_time: Time at which the package is delivered (default is None, to be set upon delivery).
+
+        Time Complexity: O(1) - Initializing an object involves constant time operations.
         """
+        # Assigning attributes to the package instance
         self.package_id = package_id
         self.delivery_address = address
         self.delivery_deadline = deadline
@@ -30,13 +33,18 @@ class Package:
         self.package_weight = weight
         self.notes = notes
         self.status = status
-        self.truck = None
-        self.depart_time = None
-        self.delivery_time = None
+
+        # Additional attributes related to delivery
+        self.truck = None  # Truck assigned to deliver the package
+        self.depart_time = None  # Time the package departs the hub
+        self.delivery_time = None  # Time the package is delivered
     
     def __str__(self):
         """
         Returns a string representation of the package with detailed information.
+
+        Time Complexity: O(1) - The string representation involves accessing instance attributes,
+        which are constant-time operations.
         """
         return f"""
         Package ID: {self.package_id}
@@ -52,13 +60,27 @@ class Package:
         Delivery Time: {self.delivery_time}
         Notes: {self.notes}"""
     
-    # Change delivery status of package
     def update_status(self, time):
-        if self.delivery_time < time:
+        """
+        Updates the status of the package based on the current time.
+
+        Parameters:
+        - time: A timedelta object representing the current time.
+
+        Status Updates:
+        - "delivered": If the package's delivery time is earlier than the current time.
+        - "en route": If the package has departed but not yet been delivered.
+        - "at hub": If the package is still at the hub.
+
+        Time Complexity: O(1) - The status update involves a series of constant-time comparisons
+        and attribute updates.
+        """
+        if self.delivery_time and self.delivery_time < time:
+            # Package has been delivered
             self.status = "delivered"
-        elif self.depart_time <= time <= self.delivery_time:
+        elif self.depart_time and self.depart_time <= time <= self.delivery_time:
+            # Package is currently being delivered
             self.status = "en route"
-            # self.delivery_time = timedelta(0)
         else:
+            # Package is still at the hub
             self.status = "at hub"
-            # self.delivery_time = timedelta(0)
