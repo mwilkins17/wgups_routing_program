@@ -2,7 +2,6 @@ from truck import Truck
 from datetime import timedelta
 from hash_table import HashTable
 from package import Package
-from data_loader import load_package_data
 import re, csv
 
 """
