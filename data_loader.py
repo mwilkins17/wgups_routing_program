@@ -1,7 +1,6 @@
 from package import Package
 from hash_table import HashTable
 import csv
-import datetime
 
 def load_distance_table() -> dict:
     """
