@@ -1,5 +1,3 @@
-from package import Package
-
 class HashTable:
     """
     Implements a hash table for storing and managing packages efficiently.

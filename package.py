@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 class Package:
     """
     Represents a delivery package with all necessary details.
