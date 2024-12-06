@@ -11,98 +11,53 @@ Western Governors University
 NHP3 — NHP3 Task 2: WGUPS Routing Program Implementation
 """
 
-# Function to calculate distance between two addresses
-def calculate_distance(address1, address2, distance_matrix, address_list):
-    """
-    Calculates the distance between two addresses based on the distance matrix.
-    """
-    index1 = address_list.index(address1)
-    index2 = address_list.index(address2)
-    distance = distance_matrix[index1][index2]
-    return float(distance if distance else distance_matrix[index2][index1])
-
-# Function to update address for package 9 at specific times
-def update_package_9(package, time):
-    """
-    Dynamically updates the address for package #9 based on the current time.
-    Ensures the note is added only once.
-    """
-    if package.package_id == 9:
-        if time < timedelta(hours=10, minutes=20):
-            package.delivery_address = '300 State St'
-            package.delivery_zip_code = 84103
-            package.notes = package.notes.replace(". Address fixed at 10:20:00", "")
-        else:
-            package.delivery_address = '410 S State St'
-            package.delivery_zip_code = 84111
-            # Only add the note if it doesn't already exist
-            if ". Address fixed at 10:20:00" not in package.notes:
-                package.notes += ". Address fixed at 10:20:00"
-
-# Nearest Neighbor Algorithm for package delivery
-def nearest_neighbor_delivery(truck, package_data, distance_matrix, address_list):
-    """
-    Implements the Nearest Neighbor Algorithm for truck deliveries.
-    Dynamically determines the next closest package destination for optimal routing.
-    Updates the truck number for each delivered package.
-    """
-    not_delivered = [package_data.lookup(package_id) for package_id in truck.packages]
-    truck.packages.clear()  # Clear and reorder packages dynamically
-
-    while not_delivered:
-        nearest_package = None
-        shortest_distance = float('inf')
-
-        # Find the nearest package
-        for package in not_delivered:
-            # Update address for package #9 dynamically
-            update_package_9(package, truck.total_time_traveled)
-
-            distance = calculate_distance(truck.location, package.delivery_address, distance_matrix, address_list)
-            if distance < shortest_distance:
-                shortest_distance = distance
-                nearest_package = package
-
-        # Deliver the nearest package
-        truck.packages.append(nearest_package.package_id)
-        not_delivered.remove(nearest_package)
-        truck.miles += shortest_distance
-        truck.total_time_traveled += timedelta(hours=shortest_distance / truck.speed)
-        truck.location = nearest_package.delivery_address
-        nearest_package.delivery_time = truck.total_time_traveled
-        nearest_package.depart_time = truck.depart_time
-        nearest_package.status = "Delivered"
-        nearest_package.truck = truck.truck_number  # Update truck number
-
 # Main function
 def main():
     """
     Main function to run the WGUPS Routing Program.
+
+    Process Flow:
+    1. Load package data, distance matrix, and address data from respective CSV files.
+    2. Create and initialize three trucks with their IDs, start locations, and start times.
+    3. Assign specific packages to each truck based on predefined package IDs.
+    4. Optimize delivery for each truck using the Nearest Neighbor Algorithm.
+    5. Provide a menu for user interaction with four main options:
+        - View final delivery status of all packages and total mileage.
+        - Lookup the delivery status of a single package at a specified time.
+        - View delivery statuses of all packages at a specified time.
+        - Exit the program.
+    6. Validate user input for menu selections, package IDs, and time formats.
+    7. Process user requests and loop until the user chooses to exit.
+
+    Time Complexity:
+    - Data Loading: O(n), where n is the total size of the CSV files.
+    - Delivery: O(t^2), where t is the number of packages per truck.
+    - Menu Loop: O(1) to O(n), depending on user interaction.
     """
-    # Load package, distance, and address data
+    # Load data
     package_data = load_package_data()
     distance_matrix = load_distance_table()
-    address_list = [row[2] for row in load_address_data()]  # Extract address column
+    address_list = [row[2] for row in load_address_data()]
 
     # Initialize trucks
     truck1 = Truck(1, '4001 South 700 East', timedelta(hours=8))
     truck2 = Truck(2, '4001 South 700 East', timedelta(hours=9, minutes=5))
     truck3 = Truck(3, '4001 South 700 East', timedelta(hours=10, minutes=20))
 
-    # Assign packages to trucks
+    # Assign packages
     truck1.packages = [1, 13, 14, 15, 16, 19, 20, 29, 30, 31, 34, 37, 40]
     truck2.packages = [3, 6, 12, 17, 18, 21, 22, 23, 24, 26, 27, 33, 35, 36, 38, 39]
     truck3.packages = [2, 4, 5, 7, 8, 9, 10, 11, 25, 28, 32]
 
-    # Deliver packages using Nearest Neighbor Algorithm
+    # Deliver packages
     nearest_neighbor_delivery(truck1, package_data, distance_matrix, address_list)
     nearest_neighbor_delivery(truck2, package_data, distance_matrix, address_list)
     nearest_neighbor_delivery(truck3, package_data, distance_matrix, address_list)
 
-    # Define a regex pattern to validate time in HH:MM:SS format
+    # Define time pattern
     time_pattern = r"^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$"
 
-    # Display menu options for the user
+    # Menu loop
     while True:
         print("""
             Welcome to WGUPS!
@@ -116,7 +71,7 @@ def main():
 
         ans = input("Which option would you like to select?:  ")
         if ans == '1':
-            # Print final delivery status for all packages and total mileage
+            # Print final delivery status and total mileage
             for i in range(1, 41):
                 package = package_data.lookup(i)
                 print(package, "\n")
@@ -163,78 +118,154 @@ def main():
                     print("\nInvalid time format. Please try again (e.g., 08:35:00).")
 
         elif ans == '4':
+            # Exit the program
             print("\nThank you for using WGUPS. Goodbye!\n")
             exit()
         else:
             print("\nInvalid choice. Please try again.")
 
-def load_distance_table() -> dict:
-    """
-    Loads the distance data from a CSV file and returns it as a list of lists.
-    Each entry represents the distance between addresses in a distance matrix format.
 
-    Time Complexity:
-    - Reading the file: O(n), where n is the number of rows in the CSV file.
-    - Converting to a list of lists: O(n), as it iterates through each row.
-    Overall: O(n), where n is the number of rows in the CSV file.
+def calculate_distance(address1, address2, distance_matrix, address_list):
+    """
+    Calculates the distance between two addresses.
+
+    Process Flow:
+    1. Find the indices of the two addresses in the address list.
+    2. Use these indices to access the corresponding distance in the distance matrix.
+    3. Handle cases where the distance is not directly available (use the reverse distance).
+
+    Time Complexity: O(n), where n is the size of the address list.
+    """
+    index1 = address_list.index(address1)
+    index2 = address_list.index(address2)
+    distance = distance_matrix[index1][index2]
+    return float(distance if distance else distance_matrix[index2][index1])
+
+
+def update_package_9(package, time):
+    """
+    Dynamically updates the address for package #9.
+
+    Process Flow:
+    1. Check if the package ID is 9.
+    2. Update the delivery address and zip code based on the current time.
+    3. Add or update notes if necessary.
+
+    Time Complexity: O(1).
+    """
+    if package.package_id == 9:
+        if time < timedelta(hours=10, minutes=20):
+            package.delivery_address = '300 State St'
+            package.delivery_zip_code = 84103
+            package.notes = package.notes.replace(". Address fixed at 10:20:00", "")
+        else:
+            package.delivery_address = '410 S State St'
+            package.delivery_zip_code = 84111
+            if ". Address fixed at 10:20:00" not in package.notes:
+                package.notes += ". Address fixed at 10:20:00"
+
+
+def nearest_neighbor_delivery(truck, package_data, distance_matrix, address_list):
+    """
+    Implements the Nearest Neighbor Algorithm for package delivery.
+
+    Process Flow:
+    1. Retrieve all packages assigned to the truck.
+    2. While there are undelivered packages:
+        a. Find the nearest package by calculating distances from the truck's current location.
+        b. Update the truck's location, mileage, and time traveled.
+        c. Mark the package as delivered and update its status.
+    3. Repeat until all packages are delivered.
+
+    Time Complexity: O(t^2), where t is the number of packages assigned to the truck.
+    """
+    not_delivered = [package_data.lookup(package_id) for package_id in truck.packages]
+    truck.packages.clear()
+
+    while not_delivered:
+        nearest_package = None
+        shortest_distance = float('inf')
+
+        for package in not_delivered:
+            update_package_9(package, truck.total_time_traveled)
+            distance = calculate_distance(truck.location, package.delivery_address, distance_matrix, address_list)
+            if distance < shortest_distance:
+                shortest_distance = distance
+                nearest_package = package
+
+        truck.packages.append(nearest_package.package_id)
+        not_delivered.remove(nearest_package)
+        truck.miles += shortest_distance
+        truck.total_time_traveled += timedelta(hours=shortest_distance / truck.speed)
+        truck.location = nearest_package.delivery_address
+        nearest_package.delivery_time = truck.total_time_traveled
+        nearest_package.depart_time = truck.depart_time
+        nearest_package.status = "Delivered"
+        nearest_package.truck = truck.truck_number
+
+
+def load_distance_table():
+    """
+    Loads the distance matrix.
+
+    Process Flow:
+    1. Open the distance CSV file.
+    2. Read all rows and convert them into a list of lists.
+
+    Time Complexity: O(n), where n is the number of rows in the CSV file.
     """
     with open("./csv/distances.csv", mode='r', encoding='utf-8-sig') as file:
-        distance_data = csv.reader(file)  # O(n) to read all rows
-        distance_list = list(distance_data)  # O(n) to convert rows to a list
-    return distance_list  # Return the distance matrix as a list of lists
+        distance_data = csv.reader(file)
+        distance_list = list(distance_data)
+    return distance_list
 
 
-def load_address_data() -> list:
+def load_address_data():
     """
-    Loads address data from a CSV file and returns it as a list of lists.
-    Each entry contains the details of an address, including its index, name, and location.
+    Loads the address list.
 
-    Time Complexity:
-    - Reading the file: O(a), where a is the number of rows in the addresses CSV.
-    - Converting to a list of lists: O(a).
-    Overall: O(a), where a is the number of rows in the addresses CSV file.
+    Process Flow:
+    1. Open the address CSV file.
+    2. Read all rows and convert them into a list of lists.
+
+    Time Complexity: O(n), where n is the number of rows in the CSV file.
     """
     with open("./csv/addresses.csv") as address_csv:
-        address_data = csv.reader(address_csv)  # O(a) to read all rows
-        address_list = list(address_data)  # O(a) to convert rows to a list
-    return address_list  # Return the list of addresses
+        address_data = csv.reader(address_csv)
+        address_list = list(address_data)
+    return address_list
 
 
-def load_package_data() -> dict:
+def load_package_data():
     """
-    Loads package data from a CSV file and inserts each package into a hash table.
+    Loads package data into a hash table.
 
-    Time Complexity:
-    - Reading the file: O(p), where p is the number of rows (packages) in the CSV file.
-    - Looping through rows to create Package instances: O(p).
-    - Hash table insertion: O(1) per insertion (average case), O(p) for all packages.
-    Overall: O(p), where p is the number of packages in the CSV file.
+    Process Flow:
+    1. Initialize a hash table to store package data.
+    2. Open the package CSV file and read rows one by one.
+    3. For each row, create a Package object and insert it into the hash table.
+
+    Time Complexity: O(n), where n is the number of packages.
     """
-    hash_table = HashTable()  # O(1) to initialize a hash table
-    
-    # Open and read the CSV file containing package details
+    hash_table = HashTable()
     with open("./csv/packages.csv", mode='r', encoding='utf-8-sig') as file:
-        reader = csv.DictReader(file)  # O(p) to iterate through rows in the CSV
-        
-        # Loop through each row in the CSV to create and insert Package objects
-        for row in reader:  # O(p), where p is the number of packages
-            package_id = int(row['PackageID'])  # O(1) to parse package ID
-            # Create a Package instance using data from the current row
+        reader = csv.DictReader(file)
+        for row in reader:
+            package_id = int(row['PackageID'])
             package = Package(
-                package_id=package_id,  # O(1)
-                address=row['Address'],  # O(1)
-                deadline=row['Deadline'],  # O(1)
-                city=row['City'],  # O(1)
-                state=row['State'],  # O(1)
-                zip_code=row['Zip'],  # O(1)
-                weight=float(row['Weight']),  # O(1)
-                status=row.get('Status', 'at hub'),  # O(1)
-                notes=row['Notes']  # O(1)
+                package_id=package_id,
+                address=row['Address'],
+                deadline=row['Deadline'],
+                city=row['City'],
+                state=row['State'],
+                zip_code=row['Zip'],
+                weight=float(row['Weight']),
+                status=row.get('Status', 'at hub'),
+                notes=row['Notes']
             )
-            # Insert the package into the hash table using its package ID as the key
-            hash_table.insert(package_id, package)  # O(1) per insertion (average case)
-    
-    return hash_table  # O(1) to return the hash table containing all packages
+            hash_table.insert(package_id, package)
+    return hash_table
+
 
 if __name__ == "__main__":
     main()
