@@ -53,7 +53,7 @@ class Package:
         Zip Code: {self.delivery_zip_code}
         Weight: {self.package_weight}
         Status: {self.status}
-        Truck Number:{self.truck}
+        Truck Number: {self.truck}
         Depart Time: {self.depart_time}
         Delivery Time: {self.delivery_time}
         Notes: {self.notes}"""
