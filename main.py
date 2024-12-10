@@ -113,7 +113,8 @@ def main():
                         package = package_data.lookup(i)
                         update_package_9(package, current_time)
                         package.update_status(current_time)
-                        print(package, "\n")
+                        print(package)
+                    print("\n")
                 else:
                     print("\nInvalid time format. Please try again (e.g., 08:35:00).")
 
@@ -187,6 +188,7 @@ def nearest_neighbor_delivery(truck, package_data, distance_matrix, address_list
         shortest_distance = float('inf')
 
         for package in not_delivered:
+            package.reset_package()
             update_package_9(package, truck.total_time_traveled)
             distance = calculate_distance(truck.location, package.delivery_address, distance_matrix, address_list)
             if distance < shortest_distance:
